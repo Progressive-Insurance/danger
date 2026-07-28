@@ -31,13 +31,20 @@ RSpec.describe Danger::GitRepo, host: :github do
     it "passes commits count in branch to git log" do
       with_git_repo do |dir|
         @dm = testing_dangerfile
+        repository = Git.open(dir)
+        allow(Git).to receive(:open).with(dir).and_return(repository)
 
-        expect_any_instance_of(Git::Base).to(
-          receive(:log).with(1).and_call_original
-        )
+        expect(repository).to receive(:log).with(1).and_call_original
 
         @dm.env.scm.diff_for_folder(dir)
       end
+    end
+
+    it "extends the repository class used by the installed git gem" do
+      repository_class = Git::Base.kind_of?(Class) ? Git::Base : Git::Repository
+
+      expect(repository_class.ancestors).to include(Danger::GitRepo::MergeBase)
+      expect(repository_class.instance_method(:merge_base).owner).to eq(Danger::GitRepo::MergeBase)
     end
 
     it "assumes the requested folder is the top level git folder by default" do

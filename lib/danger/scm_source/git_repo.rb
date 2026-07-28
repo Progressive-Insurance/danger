@@ -192,12 +192,22 @@ module Danger
   end
 end
 
-module Git
-  class Base
-    # Use git-merge-base https://git-scm.com/docs/git-merge-base to
-    # find as good common ancestors as possible for a merge
-    def merge_base(commit1, commit2, *other_commits)
-      Open3.popen2("git", "merge-base", commit1, commit2, *other_commits) { |_stdin, stdout, _wait_thr| stdout.read.rstrip }
+module Danger
+  class GitRepo
+    module MergeBase
+      # Use git-merge-base https://git-scm.com/docs/git-merge-base to
+      # find as good common ancestors as possible for a merge
+      def merge_base(commit1, commit2, *other_commits)
+        Open3.popen2("git", "merge-base", commit1, commit2, *other_commits) { |_stdin, stdout, _wait_thr| stdout.read.rstrip }
+      end
     end
   end
+end
+
+# Git::Base became a compatibility module included in Git::Repository in git 5.0.
+# Prepend Danger's extension to the concrete repository class in either version.
+if Git::Base.kind_of?(Class)
+  Git::Base.prepend(Danger::GitRepo::MergeBase)
+else
+  Git::Repository.prepend(Danger::GitRepo::MergeBase)
 end

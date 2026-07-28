@@ -11,6 +11,7 @@
 ## master
 
 <!-- Your comment below here -->
+* Support git gem 5.0 - [#1549](https://github.com/danger/danger/issues/1549)
 <!-- Your comment above here -->
 
 ## 9.6.0
